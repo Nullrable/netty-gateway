@@ -23,6 +23,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.net.URI;
@@ -104,25 +105,14 @@ public class InboundHandler extends SimpleChannelInboundHandler<FullHttpRequest>
             return;
         }
 
+        List<GatewayFilter> gatewayFilters = route.getGatewayFilters();
 
-//        List<GatewayFilter> gatewayFilters = route.getGatewayFilters();
-//        defaultGatewayFilterChain = new DefaultGatewayFilterChain(gatewayFilters);
-//        defaultGatewayFilterChain.filter(request);
+        if ( !CollectionUtils.isEmpty(gatewayFilters )) {
+            DefaultWebFilterHandler defaultWebFilterHandler = new DefaultWebFilterHandler(gatewayFilters);
+            defaultWebFilterHandler.handle(request);
+        }
 
-
-        String proxyReponse = doProxyRequest(route, request);
-
-        ByteBuf outByteBuf = Unpooled.copiedBuffer(proxyReponse,  Charset.forName("UTF-8"));
-
-        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, outByteBuf);
-        response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html; charset=UTF-8");
-        response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, proxyReponse.getBytes().length);
-
-        ctx.write(response);
-
-        // 写入文件尾部
-        ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-        future.addListener(ChannelFutureListener.CLOSE);
+        service(route, ctx, request);
 
     }
 
@@ -147,6 +137,24 @@ public class InboundHandler extends SimpleChannelInboundHandler<FullHttpRequest>
         }
 
         return null;
+
+    }
+
+    private void service(Route route, ChannelHandlerContext ctx, FullHttpRequest request){
+
+        String proxyReponse = doProxyRequest(route, request);
+
+        ByteBuf outByteBuf = Unpooled.copiedBuffer(proxyReponse,  Charset.forName("UTF-8"));
+
+        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, outByteBuf);
+        response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html; charset=UTF-8");
+        response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, proxyReponse.getBytes().length);
+
+        ctx.write(response);
+
+        // 写入文件尾部
+        ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+        future.addListener(ChannelFutureListener.CLOSE);
 
     }
 

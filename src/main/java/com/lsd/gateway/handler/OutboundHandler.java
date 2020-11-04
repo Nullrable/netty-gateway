@@ -7,7 +7,6 @@ import io.netty.channel.ChannelPromise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.charset.Charset;
 
 /**
  * @Author: nhsoft.lsd
@@ -22,8 +21,6 @@ public class OutboundHandler extends ChannelOutboundHandlerAdapter {
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-
-        LOG.info("EchoServerOutHandler   write "+((ByteBuf)msg).toString(Charset.defaultCharset()));
 
         ctx.write(msg, promise);
     }
