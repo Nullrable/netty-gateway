@@ -4,6 +4,7 @@ package com.lsd.gateway.handler;
 import com.lsd.gateway.config.GatewayProperties;
 import com.lsd.gateway.filter.DefaultGatewayFilterChain;
 import com.lsd.gateway.filter.GatewayFilter;
+import com.lsd.gateway.loadbalance.LoadBalance;
 import com.lsd.gateway.predicate.Predicate;
 import com.lsd.gateway.predicate.PredicateDefinition;
 import com.lsd.gateway.route.Route;
@@ -42,7 +43,8 @@ import java.util.Map;
 public class InboundHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     private static final GatewayProperties gatewayProperties = new GatewayProperties();
-    private DefaultGatewayFilterChain defaultGatewayFilterChain = null;
+
+    private LoadBalance loadBalance;
 
     static {
 
@@ -118,13 +120,18 @@ public class InboundHandler extends SimpleChannelInboundHandler<FullHttpRequest>
 
 
 
-    private Route getRoute(FullHttpRequest request, List<Route> routeLis) {
+    private Route getRoute(FullHttpRequest request, List<Route> routeList) {
 
         //TODO 这部分可以写的优雅
 
+        if ( loadBalance != null ) {
+
+            return loadBalance.match(routeList);
+        }
+
         String predicateStr = request.headers().get("Host");
 
-        for (Route route : routeLis) {
+        for (Route route : routeList) {
 
             List<Predicate> predicates = route.getPredicates();
 
