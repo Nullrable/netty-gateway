@@ -23,7 +23,7 @@ public class SimpleGatewayFilterFactory implements GatewayFilterFactory {
             @Override
             public void filter(FullHttpRequest request, GatewayFilterChain chain) {
 
-                LOG.info("welcome simple gateway filter");
+                LOG.debug("welcome simple gateway filter");
 
                 chain.filter(request);
             }

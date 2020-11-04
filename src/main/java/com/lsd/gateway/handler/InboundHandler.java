@@ -5,6 +5,7 @@ import com.lsd.gateway.config.GatewayProperties;
 import com.lsd.gateway.filter.DefaultGatewayFilterChain;
 import com.lsd.gateway.filter.GatewayFilter;
 import com.lsd.gateway.loadbalance.LoadBalance;
+import com.lsd.gateway.predicate.FilterDefinition;
 import com.lsd.gateway.predicate.Predicate;
 import com.lsd.gateway.predicate.PredicateDefinition;
 import com.lsd.gateway.route.Route;
@@ -62,6 +63,17 @@ public class InboundHandler extends SimpleChannelInboundHandler<FullHttpRequest>
         predicateDefinitions.add(predicateDefinition);
 
         routeDefinition.setPredicates(predicateDefinitions);
+
+
+        List<FilterDefinition> filterDefinitions = new ArrayList<>();
+
+        FilterDefinition filterDefinition = new FilterDefinition("1", "first-filter");
+        filterDefinitions.add(filterDefinition);
+
+        filterDefinition = new FilterDefinition("2", "second-filter");
+        filterDefinitions.add(filterDefinition);
+
+        routeDefinition.setFilters(filterDefinitions);
 
 
         try {
